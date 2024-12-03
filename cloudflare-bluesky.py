@@ -9,7 +9,7 @@ import sys
 
 import secret
 
-API_BASE_URL = 'https://api.cloudflare.com/client/v4/accounts/' + mysecret.CLOUDFLARE_ACCOUNT_ID
+API_BASE_URL = 'https://api.cloudflare.com/client/v4/accounts/' + secret.CLOUDFLARE_ACCOUNT_ID
 
 ############
 # HELPER METHODS
@@ -36,7 +36,7 @@ def save_settings(settings):
 def get_headers():
 
     headers = {
-        'Authorization': 'Bearer ' + mysecret.CLOUDFLARE_API_TOKEN,
+        'Authorization': 'Bearer ' + secret.CLOUDFLARE_API_TOKEN,
         'Content-Type': 'application/json'
     }
 
