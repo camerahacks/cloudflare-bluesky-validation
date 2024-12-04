@@ -7,9 +7,10 @@ import sys
 # SETTINGS
 ############
 
-import secret
+CLOUDFLARE_ACCOUNT_ID = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+CLOUDFLARE_API_TOKEN = os.environ["CLOUDFLARE_API_TOKEN"]
 
-API_BASE_URL = 'https://api.cloudflare.com/client/v4/accounts/' + secret.CLOUDFLARE_ACCOUNT_ID
+API_BASE_URL = 'https://api.cloudflare.com/client/v4/accounts/' + CLOUDFLARE_ACCOUNT_ID
 
 ############
 # HELPER METHODS
@@ -30,13 +31,10 @@ def load_settings():
 
     return settings
 
-def save_settings(settings):
-    pass
-
 def get_headers():
 
     headers = {
-        'Authorization': 'Bearer ' + secret.CLOUDFLARE_API_TOKEN,
+        'Authorization': 'Bearer ' + CLOUDFLARE_API_TOKEN,
         'Content-Type': 'application/json'
     }
 
@@ -82,7 +80,6 @@ def save_settings(settings):
     with open('settings.json', 'w') as settings_file:
          json.dump(settings, settings_file)
 
-
     pass
 
 ############
@@ -125,16 +122,6 @@ def list_handles(hdls):
             
             print('Handle: ' + hdl['handle'] + ' DID: ' + hdl['did'] )
 
-def add_handle(handle, did):
-
-    query = {}
-    query['sql'] = 'INSERT INTO ' + settings['table']['tbl_name'] + '(handle, did) VALUES (?, ?)'
-
-    result = query_db(query, settings['db']['uuid'])
-
-    return result
-
-
 def show_db_selection(db_options):
 
     print('\nD1 Databases:')
@@ -155,7 +142,6 @@ def get_tables():
 
     return result
 
-
 def get_handles(db, table):
 
     query = {}
@@ -165,11 +151,25 @@ def get_handles(db, table):
 
     return result
 
-def add_handle(db, handle, did):
-    pass
+def add_handle(handle, did):
 
-def delete_handle():
-    pass
+    query = {}
+    query['sql'] = 'INSERT INTO ' + settings['table']['tbl_name'] + '(handle, did) VALUES (?, ?)'
+    query['params'] = [handle, did]
+
+    result = query_db(query, settings['db']['uuid'])
+
+    return result
+
+def delete_handle(handle):
+
+    query = {}
+    query['sql'] = 'DELETE FROM ' + settings['table']['tbl_name'] + ' WHERE handle = ?'
+    query['params'] = [handle]
+
+    result = query_db(query, settings['db']['uuid'])
+
+    return result
 
 options = {
             "1":"List DBs",
@@ -218,7 +218,7 @@ def select_db():
 
 def select_table():
 
-    tbls = get_tables(settings['db']['uuid'])
+    tbls = get_tables()
     if len(tbls) == 0:
         print('')
         print('Create a Table First')
@@ -343,8 +343,44 @@ while True:
             handle = input("Handle: ")
             did = input("DID: ")
 
-        
-        
+            # Add confirmation before adding info to DB
+
+            result = add_handle(handle, did)
+
+            if( ( result[0]['success'] == True ) & ( result[0]['meta']['rows_written'] != 0 ) ):
+                print("Handle added to DB")
+            
+            else:
+                print("An error occurred. Handle not added to DB")
+
+
+    # Delete Handle
+    if choice == "8":
+        if not 'db' in settings:
+
+            print("\nPlease Select or Create a DB First")
+            continue
+
+        elif not 'table' in settings:
+
+            print("\nPlease Select or Create a Table First")
+            continue
+
+        else:
+            handle = input("Handle to delete: ")
+
+            # Add confirmation before adding info to DB
+
+            result = delete_handle(handle)
+
+            if((result[0]['success'] == True) & (result[0]['meta']['rows_written'] != 0)):
+                print("Handle deleted from the DB")
+            
+            elif ((result[0]['success'] == True) & (result[0]['meta']['rows_written'] == 0)):
+                print("No rows changed. Most likely, handle does not exits")
+
+            else:
+                print("An error occurred. Handle was not deleted")
 
     elif choice == "9":
         print('')
