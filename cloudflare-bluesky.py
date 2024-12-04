@@ -285,6 +285,11 @@ while True:
 
         save_settings(settings)
 
+    # Create DB
+    if choice == "3":
+        
+        print("Not implemented yet.")
+
     # List Tables
     if choice == "4":
         if not 'db' in settings:
